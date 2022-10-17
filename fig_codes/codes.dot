@@ -1,0 +1,66 @@
+digraph G {                                                                                   
+  rankdir=TB;
+  XYZ     [label="XYZ\n coordinates"];
+  BASIS   [label="Atomic\n basis set"];
+  PSEUDO  [label="Pseudo-\npotentials"];
+  AODUMP  [label="Integrals\n in AO basis"];
+  FCIDUMP [label="Integrals\n in MO basis"]
+  DM      [label="Density\n matrices"];
+  Det     [label="Determinant\n expansion"];
+  CSF     [label="CSF\n expansion"];
+  MO      [label="Molecular\n orbitals"];
+  Properties [label="Properties"];
+
+  QP      [label="Quantum\n Package", shape=square, color=lightgrey, style=filled];
+  QMCCHEM [label="QMC=Chem", shape=square, color=lightgrey, style=filled];
+  Turbo   [label="TurboRVB", shape=square, color=lightgrey, style=filled];
+  CHAMP   [label="CHAMP", shape=square, color=lightgrey, style=filled];
+  NECI    [label="NECI", shape=square, color=lightgrey, style=filled];
+  GammCor [label="GammCor", shape=square, color=lightgrey, style=filled];
+  QML     [label="QML", shape=square, color=lightgrey, style=filled];
+
+
+  XYZ -> QP;
+  BASIS -> QP;
+  PSEUDO -> QP;
+  QP -> FCIDUMP;
+  QP -> AODUMP;
+  QP -> DM;
+  QP -> MO;
+  QP -> Det;
+  QP -> CSF;
+  QP -> Properties;
+
+  FCIDUMP -> NECI;
+  NECI -> DM;
+  NECI -> Det;
+  NECI -> CSF;
+  NECI -> Properties;
+
+  AODUMP -> GammCor;
+  FCIDUMP -> GammCor;
+  DM -> GammCor;
+  GammCor -> Properties;
+  
+  BASIS -> QMCCHEM;
+  XYZ -> QMCCHEM;
+  PSEUDO -> QMCCHEM;
+  MO -> QMCCHEM;
+  Det -> QMCCHEM;
+  QMCCHEM -> Properties;
+  
+  BASIS -> CHAMP;
+  XYZ -> CHAMP;
+  PSEUDO -> CHAMP;
+  MO -> CHAMP;
+  CSF -> CHAMP;
+  CHAMP -> Properties;
+  
+  BASIS -> Turbo;
+  XYZ -> Turbo;
+  PSEUDO -> Turbo;
+  MO -> Turbo;
+  Turbo -> Properties;
+
+  Properties -> QML;
+  }

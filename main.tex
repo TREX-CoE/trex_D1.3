@@ -1,0 +1,87 @@
+\documentclass{TREX}
+\usepackage{minted}
+\usepackage{longtable}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%                                                                 %%%%
+%%%% IMPORTANT                                                       %%%%
+%%%%                                                                 %%%%
+%%%% The content of the report is located in the 05-content.tex file %%%%
+%%%%                                                                 %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%------
+% TODO : Fill in this information
+
+% Work package number
+\newcommand{\WorkPackage}{1}
+
+% Work package title
+\newcommand{\WorkPackageTitle}{Standard API for QMC kernels and implementation}
+
+% Deliverable number
+\newcommand{\DelID}{3}
+
+% Title of the Deliverable
+\newcommand{\DelTitle}{Second iteration of Report on software design and implementation}
+
+% Due date
+\newcommand{\DueDate}{M26 -- 31-11-2022 (from GA)}
+
+% Actual submission date
+\newcommand{\SubDate}{30-11-2022}
+
+% Main author (Leader)
+\newcommand{\LeadAuthor}{Anthony Scemama (\ac{CNRS})}
+
+% Contributing authors
+\newcommand{\Contributors}{}
+
+% Reviewers
+\newcommand{\Reviewers}{Pablo Oliveira (\ac{UVSQ}), Ali Alavi (\ac{MPG})}
+
+% Deliverable version
+\newcommand{\DelVersion}{1.0}
+
+% Draft or final version?
+\newcommand{\DraftOrFinal}{Final}
+
+%------
+
+\newcommand{\DelNumber}{D\WorkPackage.\DelID }
+
+
+\title{\DelNumber{}  -- \DelTitle}
+\author{\LeadAuthor}
+
+
+\begin{document}
+
+\input{01-title}
+\pagenumbering{roman}
+\rfoot{ \thepage\ of viii}
+\input{02-info}
+\input{03-versioning}
+\input{04-abbreviations}
+
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables  
+\clearpage
+
+\pagenumbering{arabic}
+\rfoot{ \thepage\ of 32}
+\input{05-content}
+
+\clearpage
+\bibliography{references}
+\pagenumbering{Roman}
+\rfoot{ \thepage\ of I}
+\appendix
+\input{appendix.tex}
+
+
+\end{document}
+
+
