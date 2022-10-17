@@ -4,8 +4,9 @@
 \newcommand{\CC}{C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\tiny\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\tiny\bf +}}
 \def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
 
-\section{Summary of report D1.1}
+\section{Introduction}
 
+\subsection{Summary of report D1.1}
 
 \Ac{QMCkl} aims at providing a high-performance
 implementation of the main kernels of \ac{QMC} methods. 
@@ -32,19 +33,46 @@ The documentation of the current status of the library is available
 at \url{https://trex-coe.github.io/qmckl}, and the source code is
 available on the GitHub repository at \url{https://github.com/trex-coe/qmckl}.
 
+\subsection{QMCkl's objective}
+
+\newcommand{\Nelec}{N_{\text{elec}}}
+\newcommand{\Nelecup}{N_{\text{elec}}^\uparrow}
+\newcommand{\Nelecdn}{N_{\text{elec}}^\downarrow}
+\newcommand{\br}{\mathbf{r}_1,\dots,\mathbf{r}_{\Nelec}}
+\newcommand{\brup}{\mathbf{r}_1,\dots,\mathbf{r}_{\Nelec^\uparrow}}
+\newcommand{\brdn}{\mathbf{r}_{\Nelec^\uparrow+1},\dots,\mathbf{r}_{\Nelec}}
+
+The most common form of wave function used in \ac{QMC} simulations is
+expressed as a linear combination of Slater determinants $D_I$ multiplied by
+a Jastrow correlation factor $\exp(J)$:
+\begin{equation}
+  \Psi(\br) = \left( \sum_I c_I\, D_I(\br) \right) \exp \left( J(\br) \right).
+\end{equation}
+
+The Slater determinants are be expressed as products of
+$\uparrow$-spin $\downarrow$-spin determinants:
+\begin{eqnarray}
+D_I(\br) = D_i^\uparrow(\brup)\, D_j^\downarrow(\brdn),
+\end{eqnarray}
+where $\Nelec = \Nelecup + \Nelecdn$ is the number of
+electrons, the sum of of the numbers of up- and down-spin electrons.
+
+The determinants are built in a basis of \acp{MO},
+\begin{equation}
+  D_i^\uparrow(\brup) = \left|
+    \begin{array}{ccc}
+      \phi_{i(1)}(\mathbf{r}_1) & \dots & \phi_{i(\Nelecup)}(\mathbf{r}_1) \\
+        \vdots & \ddots & \vdots \\
+      \phi_{i(1)}(\mathbf{r}_{\Nelecup}) & \dots & \phi_{i(\Nelecup)}(\mathbf{r}_{\Nelecup}) 
+    \end{array}
+    \right|
+\end{equation}
+and each determinant differs from the other ones by the indices $\{
+i(1), \dots, i(\Nelecup) \}$ of the \acp{MO} composing it.
 
 \section{Work done since D1.1}
 
-\subsection{Documentation}
-% Examples.org
-% Installation instructions
-% Tutorials
-
 \subsection{New functionalities}
-
-\subsubsection{Improvement of design}
-%    In-place functions
-%    Added notion of point instead of electron
 
 \subsubsection{Implemented kernels}
 %    AOs VGL
@@ -55,12 +83,22 @@ available on the GitHub repository at \url{https://github.com/trex-coe/qmckl}.
 %    Finished Shermann-Morrison-Woodbury implementation
 %    Jastrow mu?
 
+\subsubsection{Improvement of design}
+%    In-place functions
+%    Added notion of point instead of electron
+
+
 \subsubsection{Python interface}
 % Modification of API to simplify Python binding
 % Tested for GNU, Intel, Nvidia, IBM compilers
 % Integration of TREXIO
 % AddressSanitizer
 
+
+\subsection{Documentation}
+% Examples.org
+% Installation instructions
+% Tutorials
 
 \subsection{Building the library}
 
