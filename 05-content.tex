@@ -49,8 +49,11 @@ a Jastrow correlation factor $\exp(J)$:
   \Psi(\br) = \left( \sum_I c_I\, D_I(\br) \right) \exp \left( J(\br) \right).
 \end{equation}
 
-The Slater determinants are be expressed as products of
-$\uparrow$-spin $\downarrow$-spin determinants:
+The Jastrow factor is a positive function of electron-electron,
+electron-nucleus and electron-electron-nucleus distances. 
+
+The Slater determinants are expressed as products of $\uparrow$-spin
+$\downarrow$-spin determinants:
 \begin{eqnarray}
 D_I(\br) = D_i^\uparrow(\brup)\, D_j^\downarrow(\brdn),
 \end{eqnarray}
@@ -69,6 +72,31 @@ The determinants are built in a basis of \acp{MO},
 \end{equation}
 and each determinant differs from the other ones by the indices $\{
 i(1), \dots, i(\Nelecup) \}$ of the \acp{MO} composing it.
+
+The \acp{MO} $\phi$ are linear combinations of \acp{AO} $\chi$:
+\begin{equation}
+\phi_j(\mathbf{r}) = \sum_k C_{kj} \chi_k(\mathbf{r}),
+\end{equation}
+each \ac{AO} being a function centered on a nucleus with a radial and an angular part.
+The angular part is expressed whether as spherical harmonics $Y_{lm}$ or as a polynomial, and
+the angular part is generally a linear combination of Gaussian functions:
+\begin{equation}
+\chi_k(\mathbf{r}) = (x-X_A)^a (y-Y_A)^b (z-Z_A)^c \sum_l d_l\, \exp \left(
+    -\gamma_{kl} |\mathbf{r}-\mathbf{R}_A|^2 \right)
+\end{equation}
+where $\mathbf{r} = (x,y,z)$ is an electron coordinate and 
+$\mathbf{R_A} = (X_A,Y_A,Z_A)$ is the coordinate of nucleus $A$.
+
+At each step of the \ac{QMC} simulation, the wave function needs to be
+evaluated at the electron positions. The dynamics of the electrons
+requires also the gradient of the wave function with respect to electron
+coordinates, and the computation of the kinetic energy needs the Laplacian
+of the wave function.
+
+The quantities involved in the calculation of the wave function are the most
+important kernels to be implemented in QMCkl, because they represent the main
+computational bottleneck of \ac{QMC} simulations.
+
 
 \section{Work done since D1.1}
 
