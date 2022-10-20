@@ -60,9 +60,9 @@ D_I(\br) = D_i^\uparrow(\brup)\, D_j^\downarrow(\brdn),
 where $\Nelec = \Nelecup + \Nelecdn$ is the number of
 electrons, the sum of of the numbers of up- and down-spin electrons.
 
-The determinants are built in a basis of \acp{MO},
+The determinants are obtained from the Slater matrix, built in a basis of \acp{MO},
 \begin{equation}
-  D_i^\uparrow(\brup) = \left|
+  D_i^\uparrow(\brup) = det(S_i^\uparrow) = \left|
     \begin{array}{ccc}
       \phi_{i(1)}(\mathbf{r}_1) & \dots & \phi_{i(\Nelecup)}(\mathbf{r}_1) \\
         \vdots & \ddots & \vdots \\
@@ -70,7 +70,7 @@ The determinants are built in a basis of \acp{MO},
     \end{array}
     \right|
 \end{equation}
-and each determinant differs from the other ones by the indices $\{
+and each Slater matrix differs from the other ones by the indices $\{
 i(1), \dots, i(\Nelecup) \}$ of the \acp{MO} composing it.
 
 The \acp{MO} $\phi$ are linear combinations of \acp{AO} $\chi$:
@@ -91,7 +91,13 @@ At each step of the \ac{QMC} simulation, the wave function needs to be
 evaluated at the electron positions. The dynamics of the electrons
 requires also the gradient of the wave function with respect to electron
 coordinates, and the computation of the kinetic energy needs the Laplacian
-of the wave function.
+of the wave function. The computation of the gradient and Laplacian of
+a Slater determinant requires the adjugate of the Slater matrix:
+
+\begin{equation}
+  \nabla_j D_i = \sum_k \left[\nabla S_i \right]_{jk} \left[\mathrm{adj}(S_i)\right]_{kj}.
+\end{equation}
+
 
 The quantities involved in the calculation of the wave function are the most
 important kernels to be implemented in QMCkl, because they represent the main
@@ -103,27 +109,79 @@ computational bottleneck of \ac{QMC} simulations.
 \subsection{New functionalities}
 
 \subsubsection{Implemented kernels}
-%    AOs VGL
-%    MOs VGL
-%    AOs values
-%    MOs values
-%    Integration of Jastrow
-%    Finished Shermann-Morrison-Woodbury implementation
-%    Jastrow mu?
+
+The most heavily used kernels were implemented:
+\begin{itemize}
+  \item the \acp{AO} with their gradients and Laplacian
+  \item the \acp{MO} with their gradients and Laplacian
+  \item the Jastrow factor in the form implemented in CHAMP
+  \item adjugate of a matrix, using Shermann-Morrison-Woodbury or
+    specialized functions for small matrices
+\end{itemize}    
+
+For the computation of the non-local component of the
+\ac{ECP}, it is often needed to evaluate the \acp{AO} of
+\acp{MO} at extra points. For these points, only the gradients and
+Laplacian are not required. We provide also functions returning only
+the values for these specific cases.
+
 
 \subsubsection{Improvement of design}
-%    In-place functions
-%    Added notion of point instead of electron
 
+In the previous design, when a QMCkl function was called the computed
+data was copied into the array provided by the user. We have now
+introduced the possibility to compute directly the values inside the
+array allocated by the user. This possibility avoids a copy, but
+can be dangerous in some situations. Therefore, the in-place functions
+can be called by the user, but they are suggested as dangerous
+optimizations to be done when the user is sure that everything works
+well with the standard version of the function.
+
+In the initial design, the \acp{AO} and \acp{MO} were computed at the
+electron positions. We have realized that we could generalize the
+usage of QMCkl beyond QMC, for the computation of \acp{MO} on a grid
+for example. In this context, the points don't correspond any more to
+electrons.
+Hence, we have introduced the concept of points instead of electron
+positions. Electrons only start to make sense in the library for the
+computation of Slater determinants, or Jastrow factors. At the
+one-electron level, we stick with the concept of points.
+
+Finally, in the initial design the number of electrons (or points,
+now) was fixed, equal to the number of electrons in the system
+multiplied by the number of walkers. The fact that \acp{MO} need to be
+computed both at electron positions and at the extra points  required
+for the \ac{ECP} raised a design problem. We have redisigned
+the library such that the number of points can be different from one
+call to the next one to simplify the use of the library.
+
+To simplify even more the usage of the library, we have introduced the
+possibility to load the input data from a TREXIO file in a single
+call, avoiding to load all the input parameters one by one. Now, using
+QMCkl has become extremely simple if the trial wave function can be
+stored in a TREXIO file. Today, TREXIO is interfaced with all the
+codes used in TREX and with the external codes we use, so this
+modification was a significant improvement.
 
 \subsubsection{Python interface}
-% Modification of API to simplify Python binding
-% Tested for GNU, Intel, Nvidia, IBM compilers
-% Integration of TREXIO
-% AddressSanitizer
+
+We have introduced the automatic generation of a Python binding of
+QMCkl with SWIG. This required the creation of \emph{safe} interfaces,
+in which when a pointer to an array is passed to a function, the size
+of the array is passed as well. This was quite an important change in
+the API, but it allows also to check that the arrays given by the user
+are large enough to avoid writing in illegal memory domains.
+
+\subsubsection{Portability}
+
+Portability is an important pillar of QMCkl. Therefore is is
+continuously tested on different architectures (Linux, MacOS) with
+different compilers (GNU, Intel, Nvidia, IBM). Today, all possible
+combinations produce a working library.
 
 
 \subsection{Documentation}
+ %% TODO
 % Examples.org
 % Installation instructions
 % Tutorials
@@ -131,29 +189,94 @@ computational bottleneck of \ac{QMC} simulations.
 \subsection{Building the library}
 
 \subsubsection{Autotools}
-%    Removed munit
-%    Out of source builds
-%    Facilitates packaging (.deb for trexio)
-%    --disable-doc
+
+We have entirely rewritten the build system, and we are now using
+Autotools. As a testing framewrok is integrated in Autotools, we have
+removed the dependency to munit.
+
+The Autotools scripts are written such that out-of-source builds can
+be made. This is important because it enables the possibility to have
+multiple build directories configured differently: with or without the
+activation of HPC-optimized functions, with different compilers, etc.
+In addition, out-of-source possibility is recommended for creating RPM
+or debian packages, so we have decided to implement this possibility
+from the very beginning.
+
+We have also implemented different building options, such as
+activating or not the creation of the Python binding, or the
+documentation which can be quite expensive to build. We also have
+added a siple flag to use the QMCkl-dgemm library developed in WP3 for
+fast small matrix multiplications.
 
 \subsubsection{Packaging}
-% Package for Spack, not upstream yet
-% FindQMCKL module for CMake
-% Guix packaging
-% PIP packaging
-% Possibility to link with QMCKL_dgemm
+
+We have prepared the environment such that packaging will be
+simple. As we are now using Autotools, the integration into the Spack
+package manager is trivial. We have created a package for Spack, but
+we are waiting for the library to be ready to be released before we
+push the Spack package upstream.
+Similarly, we have prepared packages for Guix, and Python-pip that
+will be pushed in the next release.
+
+Many of our users are using CMake and not Autotools for their code. So
+we also provide a \texttt{FindQMCKL} CMake file to help CMake detect
+the presence of QMCkl. In addition, we generate files for
+\texttt{pkg-config} such that linking a code with QMCkl should be as
+simple as possible.
 
 \subsection{Usage of QMCkl in external software}
-%    Adoption in TREXIO tools
-%    Possible collaboration with industry => DFT code
+
+We have started to use QMCkl in our software. The first use was for
+the TREXIO-tools package.
+
+TREXIO-tools is a repository of tools to interact with TREXIO files. A
+common use of this tool is to check that the wave function written in
+the TREXIO file is consistent. To do that, we compute numerically the
+overlap matrix of the \acp{MO}, and compare it with the identity
+matrix as the \acp{MO} are expected to be orthonormal. If this test
+fails, it indicated to the user that the data written by the user is
+inconsistent.
+
+In the early days, this computation was performed in Python. Now, if
+the QMCKl Python interface is detected on the system this computation
+is performed with the QMCkl Python binding. Orders of magnitudes were
+observed in terms of performance, and the number of grid points can
+now be made large enough to have an acceptable precision in the
+numerical integrals.
+
+This example demonstrates that QMCkl can be very useful in a non-QMC
+framework, for performing three-dimensional visualizations of molecular
+orbitals of large systems for example, or for the computation of the
+\acp{AO} on a grid for \ac{DFT} calculations. In this context, we are
+initiating a collaboration with the Qubit Pharmaceuticals company
+which is interested in using QMCkl in their software.
 
 \subsubsection{Feedback from HPC experts}
-%   Data structures for HPC
-%   QMCkl dgemm => BLAS
+
+There has been a strong interaction between WP1 and WP3 for the
+development of high-performance versions of the library. In this
+collaboration, some important feedback has been given for redesigning
+the internal data-structures, to facilitate the development of
+high-performance functions. 
+For example, the creation of QMCkl-dgemm library induced the
+abstraction of vectors, matrices and tensors in QMCkl such that normal
+arrays are used in the absence of QMCkl-dgemm, but more complex data
+structures can be used in HPC-optimized variants.
+
 
 \subsubsection{Feedback from users}
-%   Edgar and fixed number of points
-%   Restructuring from GPU version
-%   PoC: integration in CHAMP
-%   PoC: integration in TurboRVB
+
+We have started the integration of QMCkl in QMC=Chem, CHAMP and
+TurboRVB. For each code, unexpected problems appeared, inducing some
+adjustments in the \ac{API}. Now we have received feedback from three
+different codes, we believe that most of the use cases have been
+explored, and that the next users will be able to integrate QMCkl in
+their code without too many effort.
+
+\section{Conclusion}
+
+Today, the three TREX QMC codes are calling QMCkl functions, and have
+observed a significant speedup. But there is still more work to be
+done to use more kernels from QMCkl, and to re-structure the codes to
+make a better use of the library, in the domain where it performs best.
 
