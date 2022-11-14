@@ -7,7 +7,7 @@
 \section{Executive summary}
 
 QMCkl is a library of kernels needed for \ac{QMC} simulations. The current \ac{WP}
-focuses on the pedagocical version of the library. Since deliverable D1.1, multiple kernels 
+focuses on the pedagogical version of the library. Since deliverable D1.1, multiple kernels 
 were implemented and the design was improved thanks to the feedback of HPC experts and code
 developers. A Python interface has been written. Autotools is now used as a build system, 
 enabling an easy installation on many different architectures, and enabling also an easy
@@ -21,7 +21,7 @@ was measured.
 \subsection{Summary of report D1.1}
 
 \Ac{QMCkl} aims at providing a high-performance
-implementation of the main kernels of \ac{QMC} methods. 
+implementation of the main kernels of the \ac{QMC} methods. 
 The current Work Package, WP1, focuses on defining the \ac{API}, the tests,
 and a \emph{pedagogical} presentation of the main algorithms.
 In WP3, the \ac{HPC} experts use this repository as a reference to re-write
@@ -29,9 +29,9 @@ optimized versions of the functions proposed in this pedagogical version of the 
 
 To maximize portability to unknown architectures, we have chosen to provide a \ac{API} that
 is compatible with the C programming language. The foundations of the library are written in C, but Fortran
-was chosen to express the kernels as it is more convenient to \ac{QMC} scientists than C to express linear algebra.
+was chosen to express the kernels because it is more convenient for \ac{QMC} scientists than C to express linear algebra.
 The dependencies on external software are kept minimal to facilitate the installation, and the
-BSD 3-clause license was chosen to make the adoption of the library easy to private companies. 
+BSD 3-clause license was chosen to make the adoption of the library easy for private software companies. 
 
 As this version of the library is intended to be mainly used as documentation, 
 we chose to use literate programming\cite{knuth_1992} in {\orgmode}
@@ -95,13 +95,13 @@ the angular part is generally a linear combination of Gaussian functions:
 \chi_k(\mathbf{r}) = (x-X_A)^a (y-Y_A)^b (z-Z_A)^c \sum_l d_{kl}\, \exp \left(
     -\gamma_{kl} |\mathbf{r}-\mathbf{R}_A|^2 \right)
 \end{equation}
-where $\mathbf{r} = (x,y,z)$ is an electron coordinate and 
+where $\mathbf{r} = (x,y,z)$ is the coordinate of an electron and 
 $\mathbf{R_A} = (X_A,Y_A,Z_A)$ is the coordinate of nucleus $A$.
 
 At each step of the \ac{QMC} simulation, the wave function must be
 evaluated at the electron positions. The dynamics of the electrons
-requires also the gradient of the wave function with respect to electron
-coordinates, and the computation of the kinetic energy needs the Laplacian
+also requires the gradient of the wave function with respect to electron
+coordinates, and the computation of the kinetic energy requires the Laplacian
 of the wave function. The computation of the gradient and Laplacian of
 a Slater determinant requires the adjugate of the Slater matrix:
 
@@ -111,7 +111,7 @@ a Slater determinant requires the adjugate of the Slater matrix:
 
 
 The quantities involved in the calculation of the wave function are the most
-important kernels to be implemented in QMCkl, because they represent the main
+important kernels to implement in QMCkl, because they represent the main
 computational bottleneck of \ac{QMC} simulations.
 
 
@@ -132,8 +132,8 @@ The most heavily used kernels were implemented. These are:
 
 For the computation of the non-local component of the
 \ac{ECP}, it is often needed to evaluate the \acp{AO} of
-\acp{MO} at extra points. For these points the gradients and
-Laplacian are not required, so we also provide functions returning only
+\acp{MO} at extra points. For these points, the gradients and
+Laplacian are not required, so we also provide functions that return only
 the values for these specific cases.
 
 
@@ -141,10 +141,10 @@ the values for these specific cases.
 
 In the previous design of the library, when a QMCkl function was called the computed
 data was copied back into the array provided by the user. We have now
-introduced zero-copy function, enabling the possibility to directly compute the
-values inside the array allocated by the user. However this possibility
+introduced the zero copy function, enabling the possibility to directly compute the
+values inside the array allocated by the user. However, this possibility
 can be dangerous in some situations, because the user of the library has to allocate
-the array as expected by the library (on CPU, or on GPU). Therefore, these in-place functions
+the array as expected by the library (on CPU or on GPU). Therefore, these in-place functions
 can be called by the user, but they are suggested as dangerous
 optimizations to be done when the user is sure that everything works
 well with the standard version of the function.
@@ -154,10 +154,10 @@ electron positions. We realized that we could generalize the
 usage of QMCkl beyond QMC, for example, for the computation of
 \acp{AO} or \acp{MO} on a grid. Such computations arise in the context
 of numerical integration, such as in \ac{DFT} or transcorrelated methods,
-and also in the context of three-dimensional visualisation of \acp{MO},
+and also in the context of three-dimensional visualization of \acp{MO},
 the electron density, or other functionals such as the \ac{ELF}.\cite{silvi_1994}
 In this context, the points on which the functions are evaluated no longer
-correspond to electron position. Hence, we have introduced the concept of
+correspond to the position of the electron. Hence, we have introduced the concept of
 \emph{point}.  The concept of \emph{electron} is introduced later for the
 computation of multi-electron quantities such as the electron repulsion potential,
 Slater determinants, or Jastrow factors. 
@@ -165,8 +165,8 @@ Slater determinants, or Jastrow factors.
 In the initial design, the number of electrons (or points,
 now) was fixed equal to the number of electrons in the system
 multiplied by the number of random walkers. The fact that \acp{MO} need to be
-computed both at electron positions and at the extra points required
-for the \ac{ECP} raised a design problem. We have redesigned
+computed both at the electron positions and at the extra points required
+for \acp{ECP} raised a design problem. We have redesigned
 the library so that the number of points can be different from one
 call to the next one to simplify the use of the library.
 
@@ -206,8 +206,8 @@ combinations compile successfully and pass the tests.
 
 \subsubsection{Autotools}
 
-After having organized training on Autotools\cite{Autotools} and CMake\cite{cmake} in WP6,
-we have entirely rewritten the build system of QMCkl and we are now using
+After having organized training in Autotools\cite{Autotools} and CMake\cite{cmake} in WP6,
+we have completely rewritten the QMCkl build process and we are now using
 Autotools. As a testing framework is integrated in Autotools, we have
 removed the dependency on the external testing framework munit.\cite{munit}
 
@@ -243,28 +243,27 @@ simple as possible.
 
 \subsection{Usage of QMCkl in external software}
 
-We have now started to use QMCkl in our software. The first use was for
+We have started to use QMCkl in our software. The first use was for
 the TREXIO-tools package.
 TREXIO-tools is a repository of tools to interact with TREXIO files.
 This tool is often used by developers who write an interface of their code with
 the TREXIO library. As the \acp{MO} are expected to be orthonormal,
 this tool checks that the wave function written in the TREXIO file is
-consistent by computing numerically the overlap matrix of the \acp{MO}, and
+consistent by numerically computing the overlap matrix of \acp{MO} and
 comparing it with the identity matrix. If this test fails, it indicates to the
-developer that the data is inconsistent, exhibiting an error in the
+developer that the data are inconsistent and that there is an error in the
 definition of the basis set.
 In the early days, this computation was performed in Python. Now, if
 the QMCKl Python interface is detected on the system, this computation
 is performed with the QMCkl Python binding. Orders of magnitudes were
-observed in terms of performance, and the number of grid points can
-now be made large enough to have an acceptable precision in the
+observed in terms of performance, and now the number of grid points can be made large enough to have an acceptable precision in the
 numerical integrals.
 
 This example demonstrates that QMCkl can be very useful beyond the \ac{QMC}
 framework, for performing three-dimensional visualizations of molecular
 orbitals of large systems, for example, or for the computation of the
 \acp{AO} on a grid for \ac{DFT} calculations. In this context, we are
-initiating a collaboration with the Qubit Pharmaceuticals company
+initiating a collaboration with the Qubit Pharmaceuticals company,
 which is interested in using QMCkl in their software.
 
 \subsubsection{Feedback from HPC experts}
@@ -280,11 +279,11 @@ arrays are used in the absence of QMCkl-dgemm, but more complex data
 structures such as tiled arrays can be used in HPC-optimized variants.
 
 Another important feedback was the importance of having a simple and clear
-implementation of the algorithms such as the one proposed in this \ac{WP}.
-The GPU experts first started by making the GPU porting of the \ac{MO} kernels
+implementation of algorithms such as the one proposed in this \ac{WP}.
+The GPU experts first started by porting to GPU the \ac{MO} kernels
 using the CPU-optimized HPC versions developed in WP3. The optimized CPU code
-is much more complicated because it takes advantage of pointer arithmetic to help the
-CPU compilers produce efficient code. GPU compilers are not mature yet, and simple
+is much more complicated because it takes advantage of pointer arithmetic to help
+CPU compilers produce efficient code. GPU compilers are not yet mature, and simple
 patterns are better understood to produce efficient GPU code. Facing difficulties
 for the \ac{MO} kernels, the HPC experts went back to the simple kernels
 proposed in this \ac{WP}, and the GPU porting was less complicated.
@@ -293,21 +292,21 @@ proposed in this \ac{WP}, and the GPU porting was less complicated.
 \subsubsection{Feedback from users}
 
 We have started the integration of QMCkl in QMC=Chem, CHAMP and
-TurboRVB. For each code, unexpected problems appeared, which required some
+TurboRVB. For each code, unexpected problems appeared that required some
 adjustments in the \ac{API}. For example, TurboRVB expects the basis functions
-to be decontracted, and expressed with spherical harmonics.
-When using QMCkl in CHAMP, we realized that only a subset of the \acp{MO}
+to be decontracted and expressed with spherical harmonics.
+When using QMCkl in CHAMP, we realized that only a subset of \acp{MO}
 needed to be computed. QMC=Chem doesn't need double precision numbers for the
 \acp{AO} and \acp{MO}. Now that we have received feedback from three different
 codes, we believe that a large amount of the use cases have been explored and that the
 next users will be able to integrate QMCkl into their code without too much
-effort. It is worth noting that significant speedups were observed when using
+effort. It should be noted that significant speedups were observed when using
 the HPC-optimized version of the library developed in WP3. This will be detailed
 in a WP3 report.
 
 \section{Conclusion}
 
-Today, the three TREX QMC codes are taking advantage of QMCkl, and have
+Today, the three TREX QMC codes are taking advantage of QMCkl and have
 observed a significant speedup. In addition, QMCkl can be used beyond the QMC framework,
 for more conventional methods such as \ac{DFT}. There is still more work to be
 done in the library, such as the implementation of additional kernels for
