@@ -6,20 +6,15 @@
 
 \section{Executive summary}
 
-%  It usually contains a brief statement of the problem or proposal covered in the major document(s), background information, concise analysis and main conclusions.
+QMCkl is a library of kernels needed for \ac{QMC} simulations. The current \ac{WP}
+focuses on the pedagocical version of the library. Since deliverable D1.1, multiple kernels 
+were implemented and the design was improved thanks to the feedback of HPC experts and code
+developers. A Python interface has been written. Autotools is now used as a build system, 
+enabling an easy installation on many different architectures, and enabling also an easy
+packaging for Linux distributions and package managers such as Spack and Guix.
+QMCkl has been introduced in the three \ac{QMC} codes of TREX, and a significant speedup
+was measured.
 
-% Typically, an executive summary will:
-% be approximately 5-10% of the length of the main report[8][10]
-% be written in language appropriate for the target audience[7][10]
-% consist of short, concise paragraphs[7][10]
-% begin with a summary[7][10]
-% be written in the same order as the main report[6][8]
-% only include material present in the main report[6][8]
-% make recommendations[7][10]
-% provide a justification[7][10]
-% have a conclusion[7][8][10]
-% be readable separately from the main report[6][7][8]
-% sometimes summarize more than one document[7]
 
 \section{Introduction}
 
@@ -27,17 +22,16 @@
 
 \Ac{QMCkl} aims at providing a high-performance
 implementation of the main kernels of \ac{QMC} methods. 
-\ac{WP}~1 focuses on defining the \ac{API}, the tests,
+The current Work Package, WP1, focuses on defining the \ac{API}, the tests,
 and a \emph{pedagogical} presentation of the main algorithms.
-In \ac{WP}~3, the \ac{HPC} experts use this repository as a reference to re-write
+In WP3, the \ac{HPC} experts use this repository as a reference to re-write
 optimized versions of the functions proposed in this pedagogical version of the library.
 
 To maximize portability to unknown architectures, we have chosen to provide a \ac{API} that
 is compatible with the C programming language. The foundations of the library are written in C, but Fortran
-was chosen to express the kernels as it is more convenient than C to express linear algebra.
+was chosen to express the kernels as it is more convenient to \ac{QMC} scientists than C to express linear algebra.
 The dependencies on external software are kept minimal to facilitate the installation, and the
-BSD 3-clause license was chosen to facilitate the adoption of the library by industrial 
-collaborators.
+BSD 3-clause license was chosen to make the adoption of the library easy to private companies. 
 
 As this version of the library is intended to be mainly used as documentation, 
 we chose to use literate programming\cite{knuth_1992} in {\orgmode}
@@ -79,7 +73,7 @@ electrons, the sum of the numbers of up- and down-spin electrons.
 
 The determinants are obtained from the Slater matrix, built on the basis of \acp{MO},
 \begin{equation}
-  D_i^\uparrow(\brup) = det(S_i^\uparrow) = \left|
+  D_i^\uparrow(\brup) = \det(S_i^\uparrow) = \left|
     \begin{array}{ccc}
       \phi_{i(1)}(\mathbf{r}_1) & \dots & \phi_{i(\Nelecup)}(\mathbf{r}_1) \\
         \vdots & \ddots & \vdots \\
@@ -95,10 +89,10 @@ The \acp{MO} $\phi$ are linear combinations of \acp{AO} $\chi$:
 \phi_j(\mathbf{r}) = \sum_k C_{kj} \chi_k(\mathbf{r}),
 \end{equation}
 each \ac{AO} being a function centered on a nucleus with a radial and an angular part.
-The angular part is whether expressed as spherical harmonics $Y_{lm}$ or as a polynomial, and
+The angular part is expressed as spherical harmonics $Y_{lm}$ or as a polynomial, and
 the angular part is generally a linear combination of Gaussian functions:
 \begin{equation}
-\chi_k(\mathbf{r}) = (x-X_A)^a (y-Y_A)^b (z-Z_A)^c \sum_l d_l\, \exp \left(
+\chi_k(\mathbf{r}) = (x-X_A)^a (y-Y_A)^b (z-Z_A)^c \sum_l d_{kl}\, \exp \left(
     -\gamma_{kl} |\mathbf{r}-\mathbf{R}_A|^2 \right)
 \end{equation}
 where $\mathbf{r} = (x,y,z)$ is an electron coordinate and 
@@ -127,7 +121,7 @@ computational bottleneck of \ac{QMC} simulations.
 
 \subsubsection{Implemented kernels}
 
-The most heavily used kernels were implemented:
+The most heavily used kernels were implemented. These are:
 \begin{itemize}
   \item the \acp{AO} with their gradients and Laplacian
   \item the \acp{MO} with their gradients and Laplacian
@@ -138,40 +132,46 @@ The most heavily used kernels were implemented:
 
 For the computation of the non-local component of the
 \ac{ECP}, it is often needed to evaluate the \acp{AO} of
-\acp{MO} at extra points. For these points, only the gradients and
-Laplacian are not required. We provide also functions returning only
+\acp{MO} at extra points. For these points the gradients and
+Laplacian are not required, so we also provide functions returning only
 the values for these specific cases.
 
 
 \subsubsection{Improvement of design}
 
-In the previous design, when a QMCkl function was called the computed
-data was copied into the array provided by the user. We have now
-introduced the possibility to directly compute the values inside the
-array allocated by the user. This possibility avoids a copy, but
-can be dangerous in some situations. Therefore, the in-place functions
+In the previous design of the library, when a QMCkl function was called the computed
+data was copied back into the array provided by the user. We have now
+introduced zero-copy function, enabling the possibility to directly compute the
+values inside the array allocated by the user. However this possibility
+can be dangerous in some situations, because the user of the library has to allocate
+the array as expected by the library (on CPU, or on GPU). Therefore, these in-place functions
 can be called by the user, but they are suggested as dangerous
 optimizations to be done when the user is sure that everything works
 well with the standard version of the function.
 
 In the initial design, the \acp{AO} and \acp{MO} were computed at the
 electron positions. We realized that we could generalize the
-usage of QMCkl beyond QMC, for example, for the computation of \acp{MO} on a grid.
-In this context, the points no longer correspond to electrons.
-Hence, we have introduced the concept of points instead of electron
-positions. Electrons only start to make sense in the library for the
-computation of Slater determinants, or Jastrow factors. At the
-one-electron level, we stick to the concept of points.
+usage of QMCkl beyond QMC, for example, for the computation of
+\acp{AO} or \acp{MO} on a grid. Such computations arise in the context
+of numerical integration, such as in \ac{DFT} or transcorrelated methods,
+and also in the context of three-dimensional visualisation of \acp{MO},
+the electron density, or other functionals such as the \ac{ELF}.\cite{silvi_1994}
+In this context, the points on which the functions are evaluated no longer
+correspond to electron position. Hence, we have introduced the concept of
+\emph{point}.  The concept of \emph{electron} is introduced later for the
+computation of multi-electron quantities such as the electron repulsion potential,
+Slater determinants, or Jastrow factors. 
 
-Finally, in the initial design, the number of electrons (or points,
+In the initial design, the number of electrons (or points,
 now) was fixed equal to the number of electrons in the system
-multiplied by the number of walkers. The fact that \acp{MO} need to be
+multiplied by the number of random walkers. The fact that \acp{MO} need to be
 computed both at electron positions and at the extra points required
 for the \ac{ECP} raised a design problem. We have redesigned
 the library so that the number of points can be different from one
 call to the next one to simplify the use of the library.
 
-To simplify even more the usage of the library, we have introduced the
+TREXIO\cite{trexio} is the library and file format developed in \ac{WP}2.
+To simplify even more the usage of QMCkl, we have introduced the
 possibility of loading the input data from a TREXIO file in a single
 call, avoiding loading all the input parameters one by one. Now, using
 QMCkl has become extremely simple if the trial wave function can be
@@ -193,10 +193,10 @@ are large enough to avoid writing in illegal memory domains.
 Portability is an important pillar of QMCkl. Therefore, it is
 continuously tested on different architectures (Linux, MacOS) with
 different compilers (GNU, Intel, Nvidia, IBM). Today, all possible
-combinations produce a working library.
+combinations compile successfully and pass the tests.
 
 
-\subsection{Documentation}
+%\subsection{Documentation}
  %% TODO
 % Examples.org
 % Installation instructions
@@ -206,9 +206,10 @@ combinations produce a working library.
 
 \subsubsection{Autotools}
 
-We have entirely rewritten the build system, and we are now using
+After having organized training on Autotools\cite{Autotools} and CMake\cite{cmake} in WP6,
+we have entirely rewritten the build system of QMCkl and we are now using
 Autotools. As a testing framework is integrated in Autotools, we have
-removed the dependency on munit.
+removed the dependency on the external testing framework munit.\cite{munit}
 
 The Autotools scripts are written such that out-of-source builds can
 be made. This is important because it enables the possibility to have
@@ -220,39 +221,38 @@ from the very beginning.
 
 We have also implemented different building options, such as
 activating or not the creation of the Python binding, or the
-documentation, which can be quite expensive to build. We also have
-added a simple flag to use the QMCkl-dgemm library developed in WP3 for
+documentation, which can be quite time consuming to build. We also have
+added a simple flag to use the external QMCkl-dgemm library developed in WP3 for
 fast small-matrix multiplications.
 
 \subsubsection{Packaging}
 
 We have prepared the environment such that packaging will be
 simple. As we are now using Autotools, the integration into the Spack
-package manager is trivial. We have created a package for Spack, but
+package manager\cite{spack} is trivial. We have created a package for Spack, but
 we are waiting for the library to be ready to be released before we
 push the Spack package upstream.
-Similarly, we have prepared packages for Guix and Python-pip that
+Similarly, we have prepared packages for Guix\cite{guix} and Python-pip that
 will be pushed in the next release.
 
 Many of our users are using CMake and not Autotools for their code. So
-we also provide a \texttt{FindQMCKL} CMake file to help CMake detect
-the presence of QMCkl. In addition, we generate files for
+we also provide a \texttt{FindQMCKL} file to help CMake detect
+the presence of QMCkl on the system. In addition, we generate files for
 \texttt{pkg-config} such that linking a code with QMCkl should be as
 simple as possible.
 
 \subsection{Usage of QMCkl in external software}
 
-We have started to use QMCkl in our software. The first use was for
+We have now started to use QMCkl in our software. The first use was for
 the TREXIO-tools package.
-
-TREXIO-tools is a repository of tools to interact with TREXIO files. A
-common use of this tool is to check that the wave function written in
-the TREXIO file is consistent. To do that, we compute numerically the
-overlap matrix of the \acp{MO}, and compare it with the identity
-matrix as the \acp{MO} are expected to be orthonormal. If this test
-fails, it indicated to the user that the data written by the user is
-inconsistent.
-
+TREXIO-tools is a repository of tools to interact with TREXIO files.
+This tool is often used by developers who write an interface of their code with
+the TREXIO library. As the \acp{MO} are expected to be orthonormal,
+this tool checks that the wave function written in the TREXIO file is
+consistent by computing numerically the overlap matrix of the \acp{MO}, and
+comparing it with the identity matrix. If this test fails, it indicates to the
+developer that the data is inconsistent, exhibiting an error in the
+definition of the basis set.
 In the early days, this computation was performed in Python. Now, if
 the QMCKl Python interface is detected on the system, this computation
 is performed with the QMCkl Python binding. Orders of magnitudes were
@@ -260,7 +260,7 @@ observed in terms of performance, and the number of grid points can
 now be made large enough to have an acceptable precision in the
 numerical integrals.
 
-This example demonstrates that QMCkl can be very useful in a non-QMC
+This example demonstrates that QMCkl can be very useful beyond the \ac{QMC}
 framework, for performing three-dimensional visualizations of molecular
 orbitals of large systems, for example, or for the computation of the
 \acp{AO} on a grid for \ac{DFT} calculations. In this context, we are
@@ -274,25 +274,47 @@ development of high-performance versions of the library. In this
 collaboration, some important feedback has been given for redesigning
 the internal data-structures, to facilitate the development of
 high-performance functions. 
-For example, the creation of QMCkl-dgemm library induced the
-abstraction of vectors, matrices and tensors in QMCkl such that normal
+For example, the creation of QMCkl-dgemm library needed us to make abstract the
+definition of vectors, matrices and tensors in QMCkl such that standard
 arrays are used in the absence of QMCkl-dgemm, but more complex data
-structures can be used in HPC-optimized variants.
+structures such as tiled arrays can be used in HPC-optimized variants.
+
+Another important feedback was the importance of having a simple and clear
+implementation of the algorithms such as the one proposed in this \ac{WP}.
+The GPU experts first started by making the GPU porting of the \ac{MO} kernels
+using the CPU-optimized HPC versions developed in WP3. The optimized CPU code
+is much more complicated because it takes advantage of pointer arithmetic to help the
+CPU compilers produce efficient code. GPU compilers are not mature yet, and simple
+patterns are better understood to produce efficient GPU code. Facing difficulties
+for the \ac{MO} kernels, the HPC experts went back to the simple kernels
+proposed in this \ac{WP}, and the GPU porting was less complicated.
 
 
 \subsubsection{Feedback from users}
 
 We have started the integration of QMCkl in QMC=Chem, CHAMP and
-TurboRVB. For each code, unexpected problems appeared, which caused some
-adjustments in the \ac{API}. Now that we have received feedback from three
-different codes, we believe that most of the use cases have been
-explored and that the next users will be able to integrate QMCkl into
-their code without too much effort.
+TurboRVB. For each code, unexpected problems appeared, which required some
+adjustments in the \ac{API}. For example, TurboRVB expects the basis functions
+to be decontracted, and expressed with spherical harmonics.
+When using QMCkl in CHAMP, we realized that only a subset of the \acp{MO}
+needed to be computed. QMC=Chem doesn't need double precision numbers for the
+\acp{AO} and \acp{MO}. Now that we have received feedback from three different
+codes, we believe that a large amount of the use cases have been explored and that the
+next users will be able to integrate QMCkl into their code without too much
+effort. It is worth noting that significant speedups were observed when using
+the HPC-optimized version of the library developed in WP3. This will be detailed
+in a WP3 report.
 
 \section{Conclusion}
 
-Today, the three TREX QMC codes are calling QMCkl functions, and have
-observed a significant speedup. But there is still more work to be
-done to use more kernels from QMCkl, and to re-structure the codes to
-make a better use of the library, in the domain where it performs best.
-
+Today, the three TREX QMC codes are taking advantage of QMCkl, and have
+observed a significant speedup. In addition, QMCkl can be used beyond the QMC framework,
+for more conventional methods such as \ac{DFT}. There is still more work to be
+done in the library, such as the implementation of additional kernels for
+periodic systems, different forms of Jastrow factors, or an efficient computation of the
+adjugate of a large sparse matrix.
+From the point of view of the codes, some modifications still have to be done to better use
+the library. Indeed, the library performs best when a large number of points is given at once, and right now the codes make one call of the library per walker.
+Finally, benchmarks need to be done to test the numerical accuracy of each kernel using
+Verificarlo. 
+This will enable increasing the performance of the library by reducing the expected precision in a controlled way.
