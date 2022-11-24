@@ -306,8 +306,9 @@ in a WP3 report.
 
 \section{Conclusion}
 
-Today, the three TREX QMC codes are taking advantage of QMCkl and have
-observed a significant speedup. In addition, QMCkl can be used beyond the QMC framework,
+Today, the TREX QMC codes are taking advantage of QMCkl and have
+observed a significant speedup: up to $1.5\times$ for TurboRVB where the computation of AOs was introduced, and $3.5\times$ for CHAMP where both the AOs and MOs are now computed with QMCkl.
+In addition, QMCkl can be used beyond the QMC framework,
 for more conventional methods such as \ac{DFT}. There is still more work to be
 done in the library, such as the implementation of additional kernels for
 periodic systems, different forms of Jastrow factors, or an efficient computation of the
